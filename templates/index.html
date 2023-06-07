@@ -1,161 +1,177 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sandbox</title>
+    <title>Minimum Spanning Tree Algorithm</title>
     <style>
-        #canvas {
-            width: 600px;
-            height: 400px;
-            border: 1px solid black;
-            position: relative;
+        canvas {
+            border: 1px solid #000;
         }
-        .point {
-            position: absolute;
-            width: 20px;
-            height: 20px;
+        #createDot,
+        #deleteDots {
+            display: block;
+            margin-top: 10px;
+        }
+        .active {
             background-color: red;
-            border-radius: 50%;
-            cursor: move;
-        }
-        .point-label {
-            position: absolute;
-            top: 25px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-weight: bold;
+            color: #fff;
         }
     </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        var points = [];
-
-        function handleDragStart(event) {
-            var style = window.getComputedStyle(event.target, null);
-            event.dataTransfer.setData("text/plain", (parseInt(style.getPropertyValue("left"), 10) - event.clientX) + ',' + (parseInt(style.getPropertyValue("top"), 10) - event.clientY) + ',' + event.target.dataset.name);
-        }
-
-        function handleDragOver(event) {
-            event.preventDefault();
-            return false;
-        }
-
-        function handleDrop(event) {
-            var offsetData = event.dataTransfer.getData("text/plain").split(',');
-            var offsetX = parseInt(offsetData[0], 10);
-            var offsetY = parseInt(offsetData[1], 10);
-            var name = offsetData[2];
-            var x = (event.clientX + offsetX);
-            var y = (event.clientY + offsetY);
-
-            var point = {x: x, y: y, name: name};
-            points.push(point);
-
-            var div = document.createElement("div");
-            div.className = "point";
-            div.style.left = x + "px";
-            div.style.top = y + "px";
-            div.dataset.name = name;
-            document.getElementById("canvas").appendChild(div);
-
-            var label = document.createElement("div");
-            label.className = "point-label";
-            label.innerText = name;
-            div.appendChild(label);
-
-            return false;
-        }
-
-        function drawLine() {
-            var canvas = document.getElementById("canvas");
-            var ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (var i = 0; i < points.length - 1; i++) {
-                var pointA = points[i];
-                var pointB = points[i + 1];
-
-                ctx.beginPath();
-                ctx.moveTo(pointA.x, pointA.y);
-                ctx.lineTo(pointB.x, pointB.y);
-                ctx.strokeStyle = "#000";
-                ctx.stroke();
-            }
-        }
-
-        function resetCanvas() {
-            var canvas = document.getElementById("canvas");
-            var ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            points = [];
-            $("#canvas").empty();
-        }
-
-        $(document).ready(function() {
-            $("#canvas").on("dragstart", ".point", function(event) {
-                handleDragStart(event.originalEvent);
-            });
-
-            $("#canvas").on("dragover", function(event) {
-                handleDragOver(event.originalEvent);
-            });
-
-            $("#canvas").on("drop", function(event) {
-                handleDrop(event.originalEvent);
-            });
-
-            $("#weight-input").change(function() {
-                var weight = parseInt($(this).val());
-                $(".point.selected").each(function() {
-                    var index = $(this).index();
-                    points[index].weight = weight;
-                });
-
-                drawLine();
-            });
-
-            $("#reset-button").click(function() {
-                resetCanvas();
-            });
-        });
-    </script>
 </head>
 <body>
-    <h1>Sandbox</h1>
-    <div id="canvas"></div>
-    <div>
-        <label for="weight-input">Line Weight:</label>
-        <input type="number" id="weight-input" min="1" max="10" value="1">
-    </div>
-    <div>
-        <label for="name-input">Point Name:</label>
-        <input type="text" id="name-input" placeholder="Enter a name">
-        <button id="add-point">Add Point</button>
-        <button id="reset-button">Reset</button>
-    </div>
+    <h1>Minimum Spanning Tree Algorithm</h1>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <button id="createDot">Create Dot</button>
+    <button id="deleteDots">Delete</button>
+
     <script>
-        $("#add-point").click(function() {
-            var name = $("#name-input").val().trim();
-            if (name) {
-                var div = document.createElement("div");
-                div.className = "point";
-                div.draggable = true;
-                div.dataset.name = name;
-                div.style.left = "290px"; // Center X coordinate
-                div.style.top = "190px"; // Center Y coordinate
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        var dots = [];
+        var dotCount = 1;
+        var deleteMode = false;
+        var selectedDot = null;
+        var offsetX = 0;
+        var offsetY = 0;
 
-                var label = document.createElement("div");
-                label.className = "point-label";
-                label.innerText = name;
-                div.appendChild(label);
+        function Dot(x, y, size, num) {
+            this.x = x;
+            this.y = y;
+            this.size = size;
+            this.num = num;
+            this.highlighted = false;
 
-                document.getElementById("canvas").appendChild(div);
-                $("#name-input").val("");
+            this.draw = function() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI, false);
+                ctx.fillStyle = this.highlighted ? 'red' : 'green';
+                ctx.fill();
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#000';
+                ctx.stroke();
 
-                var point = {x: 290, y: 190, name: name};
-                points.push(point);
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#fff';
+                ctx.fillText(this.num, this.x - 5, this.y + 5);
             }
-        });
+
+            this.isInside = function(x, y) {
+                var dx = this.x - x;
+                var dy = this.y - y;
+                return Math.sqrt(dx * dx + dy * dy) <= this.size;
+            }
+        }
+
+        function createDot() {
+            var centerX = canvas.width / 2;
+            var centerY = canvas.height / 2;
+            var size = 20;
+            var num = getNextNumber();
+
+            var dot = new Dot(centerX, centerY, size, num);
+            dots.push(dot);
+            dot.draw();
+        }
+
+        function getNextNumber() {
+            var numbers = dots.map(function(dot) {
+                return dot.num;
+            });
+
+            var nextNumber = 1;
+            while (numbers.includes(nextNumber)) {
+                nextNumber++;
+            }
+
+            return nextNumber;
+        }
+
+        function handleMouseDown(event) {
+            var rect = canvas.getBoundingClientRect();
+            var x = event.clientX - rect.left;
+            var y = event.clientY - rect.top;
+
+            if (deleteMode) {
+                for (var i = dots.length - 1; i >= 0; i--) {
+                    if (dots[i].isInside(x, y)) {
+                        dots.splice(i, 1);
+                        redrawCanvas();
+                        break;
+                    }
+                }
+            } else {
+                for (var i = dots.length - 1; i >= 0; i--) {
+                    if (dots[i].isInside(x, y)) {
+                        selectedDot = dots[i];
+                        offsetX = x - selectedDot.x;
+                        offsetY = y - selectedDot.y;
+                        canvas.addEventListener('mousemove', handleMouseMove);
+                        canvas.addEventListener('mouseup', handleMouseUp);
+                        break;
+                    }
+                }
+            }
+        }
+
+        function handleMouseMove(event) {
+            var rect = canvas.getBoundingClientRect();
+            var x = event.clientX - rect.left;
+            var y = event.clientY - rect.top;
+            selectedDot.x = x - offsetX;
+            selectedDot.y = y - offsetY;
+            redrawCanvas();
+        }
+
+        function handleMouseUp() {
+            selectedDot = null;
+            canvas.removeEventListener('mousemove', handleMouseMove);
+            canvas.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        function handleCanvasClick(event) {
+            if (deleteMode) return;
+
+            var rect = canvas.getBoundingClientRect();
+            var x = event.clientX - rect.left;
+            var y = event.clientY - rect.top;
+
+            for (var i = dots.length - 1; i >= 0; i--) {
+                if (dots[i].isInside(x, y)) {
+                    selectedDot = dots[i];
+                    offsetX = x - selectedDot.x;
+                    offsetY = y - selectedDot.y;
+                    break;
+                }
+            }
+        }
+
+        function toggleDeleteMode() {
+            deleteMode = !deleteMode;
+            var deleteButton = document.getElementById('deleteDots');
+            deleteButton.textContent = deleteMode ? 'Done' : 'Delete';
+            deleteButton.classList.toggle('active');
+            canvas.removeEventListener('mousemove', handleMouseMove);
+            canvas.removeEventListener('mouseup', handleMouseUp);
+            clearHighlights();
+        }
+
+        function clearHighlights() {
+            dots.forEach(function(dot) {
+                dot.highlighted = false;
+            });
+            redrawCanvas();
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            dots.forEach(function(dot) {
+                dot.draw();
+            });
+        }
+
+        document.getElementById('createDot').addEventListener('click', createDot);
+        document.getElementById('deleteDots').addEventListener('click', toggleDeleteMode);
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('click', handleCanvasClick);
     </script>
 </body>
 </html>
