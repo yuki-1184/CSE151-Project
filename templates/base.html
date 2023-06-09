@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <title>Minimum Spanning Tree</title>
+  </head>
+  <body>
+    {% block content %}
+    {% endblock %}
+	<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+  </body>
+</html>

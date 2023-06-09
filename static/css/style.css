@@ -1,0 +1,13 @@
+canvas {
+    border: 1px solid #000;
+}
+#createDot,
+#deleteDots,
+#createLine {
+    display: block;
+    margin-top: 10px;
+}
+.active {
+    background-color: red;
+    color: #fff;
+}
