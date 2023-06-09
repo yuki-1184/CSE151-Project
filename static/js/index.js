@@ -24,24 +24,24 @@ function Dot(x, y, size, num) {
 
     this.draw = function() {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI, false);
-        ctx.fillStyle = this.highlighted ? 'red' : 'green';
+        ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
+        ctx.fillStyle = '#000';
         ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#000';
-        ctx.stroke();
 
         ctx.font = '14px Arial';
         ctx.fillStyle = '#fff';
-        ctx.fillText(this.num, this.x - 5, this.y + 5);
-    }
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.num, this.x, this.y);
+    };
 
     this.isInside = function(x, y) {
         var dx = this.x - x;
         var dy = this.y - y;
         return Math.sqrt(dx * dx + dy * dy) <= this.size;
-    }
+    };
 }
+
 
 function Line(dot1, dot2, weight) {
     this.dot1 = dot1;
@@ -73,12 +73,13 @@ function Line(dot1, dot2, weight) {
 function createDot() {
     var centerX = canvas.width / 2;
     var centerY = canvas.height / 2;
-    var size = 20;
+    var size = 15;
     var num = getNextNumber();
 
     var dot = new Dot(centerX, centerY, size, num);
     dots.push(dot);
     dot.draw();
+    redrawCanvas();
 }
 
 function getNextNumber() {
@@ -86,7 +87,7 @@ function getNextNumber() {
         return dot.num;
     });
 
-    var nextNumber = 1;
+    var nextNumber = 0;
     while (numbers.includes(nextNumber)) {
         nextNumber++;
     }
@@ -100,6 +101,7 @@ function handleMouseDown(event) {
     var y = event.clientY - rect.top;
 
     if (deleteMode) {
+        // Code for deleting a dot
         for (var i = dots.length - 1; i >= 0; i--) {
             if (dots[i].isInside(x, y)) {
                 deleteDotAndConnectedLines(dots[i]);
@@ -107,7 +109,9 @@ function handleMouseDown(event) {
             }
         }
     } else if (createLineMode) {
+        // Code for creating a line
         if (!selectedDot1) {
+            // Select the first dot
             for (var i = dots.length - 1; i >= 0; i--) {
                 if (dots[i].isInside(x, y)) {
                     selectedDot1 = dots[i];
@@ -117,22 +121,23 @@ function handleMouseDown(event) {
                 }
             }
         } else if (!selectedDot2) {
+            // Select the second dot
             for (var i = dots.length - 1; i >= 0; i--) {
-                if (dots[i].isInside(x, y)) {
+                if (dots[i].isInside(x, y) && dots[i] !== selectedDot1) {
                     selectedDot2 = dots[i];
                     offsetX2 = x - selectedDot2.x;
                     offsetY2 = y - selectedDot2.y;
-                    var weight = prompt('Enter the weight:');
-                    if (weight) {
-                        var line = new Line(selectedDot1, selectedDot2, weight);
-                        lines.push(line);
-                        redrawCanvas();
-                    }
+                    var weight = Math.floor(Math.random() * 99) + 1; // Random weight between 1 and 99
+                    var line = new Line(selectedDot1, selectedDot2, weight);
+                    lines.push(line);
+                    exitCreateLineMode(); // Exit Create line mode
+                    redrawCanvas();
                     break;
                 }
             }
         }
     } else {
+        // Code for selecting a dot
         for (var i = dots.length - 1; i >= 0; i--) {
             if (dots[i].isInside(x, y)) {
                 selectedDot1 = dots[i];
@@ -156,6 +161,9 @@ function handleMouseDown(event) {
         }
     }
 }
+
+
+
 
 function handleMouseMove(event) {
     var rect = canvas.getBoundingClientRect();
@@ -208,8 +216,16 @@ function deleteDotAndConnectedLines(dot) {
         return line.dot1 !== dot && line.dot2 !== dot;
     });
 
+    // Delete connections
+    for (var i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].dot1 === dot || lines[i].dot2 === dot) {
+            lines.splice(i, 1);
+        }
+    }
+
     redrawCanvas();
 }
+
 
 function redrawCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -221,6 +237,9 @@ function redrawCanvas() {
     for (var i = 0; i < dots.length; i++) {
         dots[i].draw();
     }
+    //console.log(lines[0].dot1.num);
+    //console.log(lines[0].dot2.num);
+    //console.log(lines[0].weight);
 }
 
 function toggleDeleteMode() {
@@ -241,6 +260,13 @@ function toggleCreateLineMode() {
         selectedDot1 = null;
         selectedDot2 = null;
     }
+}
+
+function exitCreateLineMode() {
+    createLineMode = false;
+    document.getElementById('createLine').classList.remove('active');
+    selectedDot1 = null;
+    selectedDot2 = null;
 }
 
 document.getElementById('createDot').addEventListener('click', createDot);
