@@ -2,8 +2,9 @@ canvas {
     border: 1px solid #000;
 }
 #createDot,
+#createLine,
 #deleteDots,
-#createLine {
+#reset { /* Added styling for the reset button */
     display: block;
     margin-top: 10px;
 }

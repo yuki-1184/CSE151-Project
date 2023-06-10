@@ -25,7 +25,7 @@ function Dot(x, y, size, num) {
     this.draw = function() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = this.highlighted ? '#ff0000' : '#000'; // Change color if highlighted
         ctx.fill();
 
         ctx.font = '14px Arial';
@@ -47,12 +47,13 @@ function Line(dot1, dot2, weight) {
     this.dot1 = dot1;
     this.dot2 = dot2;
     this.weight = weight;
+    this.highlighted = false;
 
     this.draw = function() {
         ctx.beginPath();
         ctx.moveTo(this.dot1.x, this.dot1.y);
         ctx.lineTo(this.dot2.x, this.dot2.y);
-        ctx.strokeStyle = '#000';
+        ctx.strokeStyle = this.highlighted ? '#ff0000' : '#000'; // Change color if highlighted
         ctx.stroke();
 
         var middleX = (this.dot1.x + this.dot2.x) / 2;
@@ -60,27 +61,30 @@ function Line(dot1, dot2, weight) {
         ctx.font = '14px Arial';
         ctx.fillStyle = '#000';
         ctx.fillText(this.weight, middleX - 5, middleY + 5);
-    }
+    };
 
     this.isInside = function(x, y) {
         var length = Math.sqrt((this.dot1.x - this.dot2.x) ** 2 + (this.dot1.y - this.dot2.y) ** 2);
         var dotProduct = ((x - this.dot1.x) * (this.dot2.x - this.dot1.x) + (y - this.dot1.y) * (this.dot2.y - this.dot1.y)) / length;
         var distance = Math.sqrt((x - this.dot1.x - dotProduct * (this.dot2.x - this.dot1.x) / length) ** 2 + (y - this.dot1.y - dotProduct * (this.dot2.y - this.dot1.y) / length) ** 2);
         return distance <= 5;
-    }
+    };
 }
 
 function createDot() {
-    var centerX = canvas.width / 2;
-    var centerY = canvas.height / 2;
     var size = 15;
     var num = getNextNumber();
+    
+    // Generate random coordinates within the canvas
+    var centerX = Math.random() * (canvas.width - 2 * size) + size;
+    var centerY = Math.random() * (canvas.height - 2 * size) + size;
 
     var dot = new Dot(centerX, centerY, size, num);
     dots.push(dot);
     dot.draw();
     redrawCanvas();
 }
+
 
 function getNextNumber() {
     var numbers = dots.map(function(dot) {
@@ -101,13 +105,32 @@ function handleMouseDown(event) {
     var y = event.clientY - rect.top;
 
     if (deleteMode) {
-        // Code for deleting a dot
+        // Code for deleting a dot or line
         for (var i = dots.length - 1; i >= 0; i--) {
-            if (dots[i].isInside(x, y)) {
-                deleteDotAndConnectedLines(dots[i]);
-                break;
+            dots[i].highlighted = dots[i].isInside(x, y);
+        }
+
+        for (var i = lines.length - 1; i >= 0; i--) {
+            lines[i].highlighted = lines[i].isInside(x, y);
+        }
+
+        for (var i = lines.length - 1; i >= 0; i--) {
+            if (lines[i].isInside(x, y)) {
+                lines.splice(i, 1); // Remove the selected line
+                redrawCanvas();
+                return;
             }
         }
+
+        dots = dots.filter(function(dot) {
+            return !dot.highlighted;
+        });
+
+        lines = lines.filter(function(line) {
+            return !line.highlighted;
+        });
+
+        redrawCanvas();
     } else if (createLineMode) {
         // Code for creating a line
         if (!selectedDot1) {
@@ -148,16 +171,20 @@ function handleMouseDown(event) {
                 break;
             }
         }
-    }
 
-    for (var i = lines.length - 1; i >= 0; i--) {
-        if (lines[i].isInside(x, y)) {
-            selectedLine = lines[i];
-            offsetXLine = x - selectedLine.dot1.x;
-            offsetYLine = y - selectedLine.dot1.y;
-            canvas.addEventListener('mousemove', handleMouseMoveLine);
-            canvas.addEventListener('mouseup', handleMouseUpLine);
-            break;
+        // Code for modifying line weight through double-clicking
+        if (event.detail === 2) {
+            // Double-click event
+            for (var i = lines.length - 1; i >= 0; i--) {
+                if (lines[i].isInside(x, y)) {
+                    var newWeight = prompt('Enter new weight for the line:', lines[i].weight);
+                    if (newWeight !== null && !isNaN(newWeight)) {
+                        lines[i].weight = parseInt(newWeight);
+                        redrawCanvas();
+                    }
+                    break;
+                }
+            }
         }
     }
 }
@@ -228,6 +255,16 @@ function deleteDotAndConnectedLines(dot) {
 
 
 function redrawCanvas() {
+    // Reset highlighted property
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    dots.forEach(function(dot) {
+        dot.highlighted = false;
+    });
+
+    lines.forEach(function(line) {
+        line.highlighted = false;
+    });
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (var i = 0; i < lines.length; i++) {
@@ -237,10 +274,8 @@ function redrawCanvas() {
     for (var i = 0; i < dots.length; i++) {
         dots[i].draw();
     }
-    //console.log(lines[0].dot1.num);
-    //console.log(lines[0].dot2.num);
-    //console.log(lines[0].weight);
 }
+
 
 function toggleDeleteMode() {
     deleteMode = !deleteMode;
@@ -269,7 +304,27 @@ function exitCreateLineMode() {
     selectedDot2 = null;
 }
 
+function handleKeyDown(event) {
+    if (event.key === "Escape") {
+        if (createLineMode) {
+            exitCreateLineMode();
+        }
+        if (deleteMode) {
+            toggleDeleteMode();
+        }
+    }
+}
+
+function resetCanvas() {
+    dots = [];
+    lines = [];
+    redrawCanvas();
+}
+
+
+document.getElementById('reset').addEventListener('click', resetCanvas);
 document.getElementById('createDot').addEventListener('click', createDot);
 document.getElementById('deleteDots').addEventListener('click', toggleDeleteMode);
 document.getElementById('createLine').addEventListener('click', toggleCreateLineMode);
 canvas.addEventListener('mousedown', handleMouseDown);
+document.addEventListener('keydown', handleKeyDown);
