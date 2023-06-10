@@ -1,3 +1,20 @@
+.container {
+    display: flex;
+}
+
+.column {
+    float: left;
+    padding: 20px;
+}
+
+.left {
+    width: 60%;
+}
+
+.right {
+    width: 40%;
+}
+
 canvas {
     border: 1px solid #000;
 }
