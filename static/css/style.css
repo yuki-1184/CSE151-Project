@@ -19,6 +19,16 @@
     margin-bottom: 20px;
 }
 
+.runButton {
+    position: fixed;
+    width: 30%;
+    bottom: 20%;
+}
+
+hr.solid {
+    border-top: 3px solid #bbb;
+  }
+
 /* CSS */
 .button-19 {
   appearance: button;
@@ -99,7 +109,7 @@ canvas {
 #createDot,
 #createLine,
 #deleteDots,
-#reset { /* Added styling for the reset button */
+#clear { /* Added styling for the reset button */
     display: block;
     margin-top: 10px;
 }
