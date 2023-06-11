@@ -1,5 +1,4 @@
-import { nodes1 } from "./sampleTrees.js";
-import { edges1 } from "./sampleTrees.js";
+import { Graphs } from "./sampleTrees.js";
 
 // canvas setup
 var canvas = document.getElementById("canvas");
@@ -23,41 +22,41 @@ var selectedLine = null;
 var offsetXLine = 0;
 var offsetYLine = 0;
 
-// option selection
-var option = document.getElementById("graphs").value;
+if (graphOption.value == "Graph1") {
+  createTemplateGraph(graphOption.value);
+}
 
-if (option == "Graph1") {
+graphOption.addEventListener("change", function () {
+  // If random is selected clear the graph
+  let option = graphOption.value;
+  runAlgorithmButton.innerHTML = "Run the Algorithm";
+  if (option == "Random") {
+    clearCanvas();
+  } else {
+    createTemplateGraph(option);
+  }
+});
+
+function createTemplateGraph(graph) {
+  clearCanvas();
+  const nodes = Graphs[graph].nodes;
+  const edges = Graphs[graph].edges;
+
   let size = 15;
 
-  for (let i = 0; i < nodes1.length; i++) {
-    var dot = new Dot(nodes1[i][0], nodes1[i][1], size, i);
+  for (let i = 0; i < nodes.length; i++) {
+    var dot = new Dot(nodes[i][0], nodes[i][1], size, i);
     dots.push(dot);
   }
 
-  for (let i = 0; i < edges1.length; i++) {
-    var line = new Line(
-      dots[edges1[i][0]],
-      dots[edges1[i][1]],
-      edges1[i][2],
-      i
-    );
+  for (let i = 0; i < edges.length; i++) {
+    var line = new Line(dots[edges[i][0]], dots[edges[i][1]], edges[i][2], i);
     lines.push(line);
   }
 
   dot.draw();
   redrawCanvas();
 }
-
-graphOption.addEventListener("change", function () {
-  // If random is selected clear the graph
-  if (graphOption.value == "Random") {
-    dots = [];
-    lines = [];
-    redrawCanvas();
-  }
-
-  //TODO: create a function to create each Graph to draw a graph on the canvas
-});
 
 function Dot(x, y, size, num) {
   this.x = x;
@@ -208,7 +207,9 @@ function handleMouseDown(event) {
           var weight = Math.floor(Math.random() * 99) + 1; // Random weight between 1 and 99
           var line = new Line(selectedDot1, selectedDot2, weight, lines.length);
           lines.push(line);
-          exitCreateLineMode(); // Exit Create line mode
+          // reset the selectedDot
+          selectedDot1 = null;
+          selectedDot2 = null;
           redrawCanvas();
           break;
         }
@@ -379,13 +380,6 @@ function toggleCreateLineMode() {
   }
 }
 
-function exitCreateLineMode() {
-  createLineMode = false;
-  document.getElementById("createLine").classList.remove("active");
-  selectedDot1 = null;
-  selectedDot2 = null;
-}
-
 function handleKeyDown(event) {
   if (event.key === "Escape") {
     if (createLineMode) {
@@ -397,14 +391,14 @@ function handleKeyDown(event) {
   }
 }
 
-function resetCanvas() {
+function clearCanvas() {
   dots = [];
   lines = [];
   redrawCanvas();
 }
 
 document.getElementById("runAlgorithm").addEventListener("click", runAlgorithm);
-document.getElementById("reset").addEventListener("click", resetCanvas);
+document.getElementById("clear").addEventListener("click", clearCanvas);
 document.getElementById("createDot").addEventListener("click", createDot);
 document
   .getElementById("deleteDots")
