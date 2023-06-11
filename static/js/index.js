@@ -4,12 +4,15 @@ import { edges1 } from "./sampleTrees.js";
 // canvas setup
 var canvas = document.getElementById("canvas");
 var graphOption = document.getElementById("graphs");
+var numNodes = document.getElementById("numNodes");
+var runAlgorithmButton = document.getElementById("runAlgorithm");
 var ctx = canvas.getContext("2d");
 var dots = [];
 var lines = [];
 var dotCount = 1;
 var deleteMode = false;
 var createLineMode = false;
+var resetAlgorithmMode = false;
 var selectedDot1 = null;
 var selectedDot2 = null;
 var offsetX1 = 0;
@@ -32,13 +35,19 @@ if (option == "Graph1") {
   }
 
   for (let i = 0; i < edges1.length; i++) {
-    var line = new Line(dots[edges1[i][0]], dots[edges1[i][1]], edges1[i][2]);
+    var line = new Line(
+      dots[edges1[i][0]],
+      dots[edges1[i][1]],
+      edges1[i][2],
+      i
+    );
     lines.push(line);
   }
 
   dot.draw();
   redrawCanvas();
 }
+
 graphOption.addEventListener("change", function () {
   // If random is selected clear the graph
   if (graphOption.value == "Random") {
@@ -46,6 +55,8 @@ graphOption.addEventListener("change", function () {
     lines = [];
     redrawCanvas();
   }
+
+  //TODO: create a function to create each Graph to draw a graph on the canvas
 });
 
 function Dot(x, y, size, num) {
@@ -75,17 +86,18 @@ function Dot(x, y, size, num) {
   };
 }
 
-function Line(dot1, dot2, weight) {
+function Line(dot1, dot2, weight, idx) {
   this.dot1 = dot1;
   this.dot2 = dot2;
   this.weight = weight;
+  this.idx = idx;
   this.highlighted = false;
 
   this.draw = function () {
     ctx.beginPath();
     ctx.moveTo(this.dot1.x, this.dot1.y);
     ctx.lineTo(this.dot2.x, this.dot2.y);
-    ctx.strokeStyle = this.highlighted ? "#ff0000" : "#000"; // Change color if highlighted
+    ctx.strokeStyle = this.highlighted ? "#43d13a" : "#000";
     ctx.stroke();
 
     var middleX = (this.dot1.x + this.dot2.x) / 2;
@@ -194,7 +206,7 @@ function handleMouseDown(event) {
           offsetX2 = x - selectedDot2.x;
           offsetY2 = y - selectedDot2.y;
           var weight = Math.floor(Math.random() * 99) + 1; // Random weight between 1 and 99
-          var line = new Line(selectedDot1, selectedDot2, weight);
+          var line = new Line(selectedDot1, selectedDot2, weight, lines.length);
           lines.push(line);
           exitCreateLineMode(); // Exit Create line mode
           redrawCanvas();
@@ -300,6 +312,7 @@ function deleteDotAndConnectedLines(dot) {
 
 function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  numNodes.innerHTML = "Number of Nodes : " + dots.length;
 
   for (var i = 0; i < lines.length; i++) {
     lines[i].draw();
@@ -307,6 +320,42 @@ function redrawCanvas() {
 
   for (var i = 0; i < dots.length; i++) {
     dots[i].draw();
+  }
+}
+
+function runAlgorithm() {
+  resetAlgorithmMode = !resetAlgorithmMode;
+
+  if (resetAlgorithmMode) {
+    runAlgorithmButton.innerHTML = "Run the Algorithm";
+    lines.forEach((line) => {
+      line.highlighted = false;
+    });
+    redrawCanvas();
+  } else {
+    const data = {
+      nodes: dots,
+      edges: lines,
+    };
+    fetch("/kruskal", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const usedLines = data.lines;
+        usedLines.forEach((line) => {
+          lines[line]["highlighted"] = true;
+        });
+        runAlgorithmButton.innerHTML = "Reset the Algorithm";
+        redrawCanvas();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   }
 }
 
