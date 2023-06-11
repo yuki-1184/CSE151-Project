@@ -1,10 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Minimum Spanning Tree Algorithm</h1>
-    <canvas id="canvas" width="500" height="500"></canvas>
-    <button id="createDot">Create Dot</button>
-    <button id="createLine">Create Line</button>
-    <button id="deleteDots">Delete</button>
-    <button id="reset">Reset</button> 
-
-    {% endblock %}
+    <div class="container">
+        <div class="column left">
+            <h1>Minimum Spanning Tree Algorithm</h1>
+            <canvas id="canvas" width="600" height="500"></canvas>
+            <button id="createDot">Create Dot</button>
+            <button id="deleteDots">Delete</button>
+            <button id="createLine">Create Line</button>
+            <button id="reset">Reset</button> 
+        </div>
+        <div class="column right">
+            <div class="block">
+                <label for="graphs">Select a graph: </label>
+                <select name="graphs" id="graphs" onChagne="handleChange()">
+                    <option value="Graph1" selected="selected">Graph1</option>
+                    <option value="Random">Random</option>
+                </select>
+            </div>
+            
+            <div>
+                <button class="button-19" id="runAlgorithm">Run the Algorithm</button>
+            </div>
+            <h2 id="numNodes"></h2>
+            
+            <h2>course developed by {{ test }}</h2>
+        </div>
+    </div>
+{% endblock %}
