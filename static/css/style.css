@@ -22,7 +22,7 @@
 .runButton {
     position: fixed;
     width: 30%;
-    bottom: 20%;
+    bottom: 15%;
 }
 
 hr.solid {
@@ -100,7 +100,8 @@ hr.solid {
 }
 
 label {
-    font-size: 20px;
+    font-size: 18.72px;
+    font-weight: bold;
 }
 
 canvas {

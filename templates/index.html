@@ -12,15 +12,33 @@
         <hr class="solid">
         <div class="column right">
             <div class="block">
+                <label for="algorithms">Select an Algorithm: </label>
+                <select name="algorithms" id="algorithms" >
+                    <option value="kruskal" selected="selected">Kruskal's Algorithm</option>
+                    <option value="prim">Prim's Algorithm</option>
+                </select>
+                <h4 style="font-weight: 400;" id="description">
+                    <strong>Kruskal's Algorithm: </strong>
+                    In Kruskal's algorithm, sort all edges of the given graph in increasing order. Then it keeps on adding new edges and nodes in the MST if the newly added edge does not form a cycle. It picks the minimum weighted edge at first at the maximum weighted edge at last. Thus we can say that it makes a locally optimal choice in each step in order to find the optimal solution. Hence this is a Greedy Algorithm.
+                </h4>
+            </div>
+            <div class="block">
                 <label for="graphs">Select a graph: </label>
-                <select name="graphs" id="graphs" onChagne="handleChange()">
+                <select name="graphs" id="graphs" >
                     <option value="Graph1" selected="selected">Graph1</option>
                     <option value="Graph2">Graph2</option>
-                    <option value="Random">Random</option>
+                    <option value="Random">Empty Graph</option>
                 </select>
             </div>
             
-            <h2 id="numNodes"></h2>
+            <h3 id="numNodes"></h3>
+            <table style="width:80%" id="table">
+                <tr align="left">
+                  <th>Nodes</th>
+                  <th>Connected Edges</th>
+                </tr>
+            </table>
+            <h3 id="minCost">Minimum cost: ??</h3>
             <div class="runButton">
                 <button class="button-19" id="runAlgorithm">Run the Algorithm</button>
             </div>

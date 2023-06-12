@@ -2,9 +2,13 @@ import { Graphs } from "./sampleTrees.js";
 
 // canvas setup
 var canvas = document.getElementById("canvas");
+var algorithmOption = document.getElementById("algorithms");
+var algorithmDescription = document.getElementById("description");
 var graphOption = document.getElementById("graphs");
 var numNodes = document.getElementById("numNodes");
 var runAlgorithmButton = document.getElementById("runAlgorithm");
+var table = document.getElementById("table");
+var minCost = document.getElementById("minCost");
 var ctx = canvas.getContext("2d");
 var dots = [];
 var lines = [];
@@ -26,10 +30,36 @@ if (graphOption.value == "Graph1") {
   createTemplateGraph(graphOption.value);
 }
 
+algorithmOption.addEventListener("change", function () {
+  let option = algorithmOption.value;
+  resetCanvas();
+  if (option == "kruskal") {
+    algorithmDescription.innerHTML = `
+    <strong>Kruskal's Algorithm: </strong>
+    In Kruskal's algorithm, sort all edges of the given graph in increasing order. 
+    Then it keeps on adding new edges and nodes in the MST if the newly added edge does not form a cycle. 
+    It picks the minimum weighted edge at first at the maximum weighted edge at last. 
+    Thus we can say that it makes a locally optimal choice in each step in order to find the optimal solution. Hence this is a Greedy Algorithm.
+    `;
+  }
+  if (option == "prim") {
+    algorithmDescription.innerHTML = `
+    <strong>Prim's Algorithm: </strong>
+    This algorithm always starts with a single node and moves through several adjacent nodes, in order to explore all of the connected edges along the way.
+    A group of edges that connects two sets of vertices in a graph is called cut in graph theory. 
+    So, at every step of Prim’s algorithm, find a cut, pick the minimum weight edge from the cut, and include this vertex in MST Set (the set that contains already included vertices).
+    `;
+  }
+});
+
 graphOption.addEventListener("change", function () {
   // If random is selected clear the graph
   let option = graphOption.value;
   runAlgorithmButton.innerHTML = "Run the Algorithm";
+  minCost.innerHTML = `Minimum cost: ??`;
+  if (resetAlgorithmMode) {
+    resetAlgorithmMode = !resetAlgorithmMode;
+  }
   if (option == "Random") {
     clearCanvas();
   } else {
@@ -151,6 +181,29 @@ function getNextNumber() {
   }
 
   return nextNumber;
+}
+
+function createTable() {
+  let tableElems = {};
+  let content = `<tr align="left"><th>Nodes</th><th>Connected Edges</th></tr>`;
+  for (let i = 0; i < dots.length; i++) {
+    tableElems[i] = [];
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    let num1 = lines[i]["dot1"]["num"];
+    let num2 = lines[i]["dot2"]["num"];
+    let weight = lines[i]["weight"];
+
+    tableElems[num1].push(`  ${num2}(${weight})`);
+    tableElems[num2].push(`  ${num1}(${weight})`);
+  }
+
+  for (const property in tableElems) {
+    content += `<tr><td>${property}</td><td>${tableElems[property]}</td></tr>`;
+  }
+
+  table.innerHTML = content;
 }
 
 function handleMouseDown(event) {
@@ -314,6 +367,7 @@ function deleteDotAndConnectedLines(dot) {
 function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   numNodes.innerHTML = "Number of Nodes : " + dots.length;
+  createTable();
 
   for (var i = 0; i < lines.length; i++) {
     lines[i].draw();
@@ -328,17 +382,13 @@ function runAlgorithm() {
   resetAlgorithmMode = !resetAlgorithmMode;
 
   if (resetAlgorithmMode) {
-    runAlgorithmButton.innerHTML = "Run the Algorithm";
-    lines.forEach((line) => {
-      line.highlighted = false;
-    });
-    redrawCanvas();
+    resetCanvas();
   } else {
     const data = {
       nodes: dots,
       edges: lines,
     };
-    fetch("/kruskal", {
+    fetch(`/${algorithmOption.value}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -348,10 +398,12 @@ function runAlgorithm() {
       .then((response) => response.json())
       .then((data) => {
         const usedLines = data.lines;
+        console.log(data);
         usedLines.forEach((line) => {
           lines[line]["highlighted"] = true;
         });
         runAlgorithmButton.innerHTML = "Reset the Algorithm";
+        minCost.innerHTML = `Minimum cost: ${data.minCost}`;
         redrawCanvas();
       })
       .catch((error) => {
@@ -389,6 +441,15 @@ function handleKeyDown(event) {
       toggleDeleteMode();
     }
   }
+}
+
+function resetCanvas() {
+  runAlgorithmButton.innerHTML = "Run the Algorithm";
+  minCost.innerHTML = `Minimum cost: ??`;
+  lines.forEach((line) => {
+    line.highlighted = false;
+  });
+  redrawCanvas();
 }
 
 function clearCanvas() {

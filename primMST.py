@@ -7,7 +7,7 @@
 import sys
 
 
-class Graph():
+class PrimGraph():
     def __init__(self, vertices):
         self.V = vertices
         self.graph = [[0 for column in range(vertices)]
@@ -17,8 +17,13 @@ class Graph():
     # the constructed MST stored in parent[]
     def printMST(self, parent):
         print("Edge \tWeight")
+        lines = []
+        minCost = 0
         for i in range(1, self.V):
             print(parent[i], "-", i, "\t", self.graph[i][parent[i]])
+            lines.append({parent[i], i, self.graph[i][parent[i]]})
+            minCost += self.graph[i][parent[i]]
+        return minCost, lines
 
     # A utility function to find the vertex with
     # minimum distance value, from the set of vertices
@@ -73,19 +78,19 @@ class Graph():
                     key[v] = self.graph[u][v]
                     parent[v] = u
 
-        self.printMST(parent)
+        lines = []
+        minCost, lines = self.printMST(parent)
+        return minCost, lines
 
 
 # Driver's code
 if __name__ == '__main__':
-    g = Graph(5)
+    g = PrimGraph(5)
     g.graph = [[0, 2, 0, 6, 0],
                [2, 0, 3, 8, 5],
                [0, 3, 0, 0, 7],
                [6, 8, 0, 0, 9],
                [0, 5, 7, 9, 0]]
 
-    g.primMST()
-
-
-# Contributed by Divyanshu Mehta
+    cost, output = g.primMST()
+    print(output.index({0, 1, 2}))
