@@ -4,7 +4,7 @@
 
 
 # Class to represent a graph
-class Graph:
+class KruskalGraph:
 
     def __init__(self, vertices):
         self.V = vertices
@@ -102,7 +102,7 @@ class Graph:
 
 # Driver code
 if __name__ == '__main__':
-    g = Graph(4)
+    g = KruskalGraph(4)
     g.addEdge(0, 1, 0, 10)
     g.addEdge(0, 2, 1, 6)
     g.addEdge(0, 3, 2, 5)
@@ -110,7 +110,4 @@ if __name__ == '__main__':
     g.addEdge(2, 3, 4, 4)
 
     # Function call
-    g.KruskalMST()
-
-# This code is contributed by Neelam Yadav
-# Improved by James Graça-Jones
+    print(g.KruskalMST())
