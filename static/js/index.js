@@ -216,7 +216,7 @@ function handleMouseDown(event) {
     // Code for deleting a dot or line
     for (var i = dots.length - 1; i >= 0; i--) {
       dots[i].highlighted = dots[i].isInside(x, y);
-      }
+    }
 
     for (var i = lines.length - 1; i >= 0; i--) {
       lines[i].highlighted = lines[i].isInside(x, y);
@@ -380,7 +380,6 @@ function redrawCanvas() {
 }
 
 function runAlgorithm() {
-
   if (resetAlgorithmMode) {
     resetCanvas();
   } else {
@@ -462,9 +461,9 @@ function clearCanvas() {
 document.getElementById("runAlgorithm").addEventListener("click", runAlgorithm);
 document.getElementById("clear").addEventListener("click", clearCanvas);
 document.getElementById("createDot").addEventListener("click", createDot);
-document
-  .getElementById("deleteDots")
-  .addEventListener("click", toggleDeleteMode);
+// document
+//   .getElementById("deleteDots")
+//   .addEventListener("click", toggleDeleteMode);
 document
   .getElementById("createLine")
   .addEventListener("click", toggleCreateLineMode);
