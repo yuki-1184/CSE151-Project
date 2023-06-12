@@ -3,9 +3,7 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Minimum Spanning Tree Emulator</title>
-</head>
+
 <body>
     <h1>Minimum Spanning Tree Emulator</h1>
   <h2>Running the Code</h2>
