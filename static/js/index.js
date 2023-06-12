@@ -32,6 +32,7 @@ if (graphOption.value == "Graph1") {
 
 algorithmOption.addEventListener("change", function () {
   let option = algorithmOption.value;
+  resetAlgorithmMode = !resetAlgorithmMode;
   resetCanvas();
   if (option == "kruskal") {
     algorithmDescription.innerHTML = `
@@ -126,7 +127,7 @@ function Line(dot1, dot2, weight, idx) {
     ctx.beginPath();
     ctx.moveTo(this.dot1.x, this.dot1.y);
     ctx.lineTo(this.dot2.x, this.dot2.y);
-    ctx.strokeStyle = this.highlighted ? "#43d13a" : "#000";
+    ctx.strokeStyle = this.highlighted ? "#43d13a" : "#808080";
     ctx.stroke();
 
     var middleX = (this.dot1.x + this.dot2.x) / 2;
@@ -215,7 +216,7 @@ function handleMouseDown(event) {
     // Code for deleting a dot or line
     for (var i = dots.length - 1; i >= 0; i--) {
       dots[i].highlighted = dots[i].isInside(x, y);
-    }
+      }
 
     for (var i = lines.length - 1; i >= 0; i--) {
       lines[i].highlighted = lines[i].isInside(x, y);
@@ -379,7 +380,6 @@ function redrawCanvas() {
 }
 
 function runAlgorithm() {
-  resetAlgorithmMode = !resetAlgorithmMode;
 
   if (resetAlgorithmMode) {
     resetCanvas();
@@ -410,6 +410,7 @@ function runAlgorithm() {
         console.error("Error:", error);
       });
   }
+  resetAlgorithmMode = !resetAlgorithmMode;
 }
 
 function toggleDeleteMode() {
